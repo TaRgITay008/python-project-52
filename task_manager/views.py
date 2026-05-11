@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.shortcuts import render
 
 def index(request):
-    return HttpResponse("Привет от Хекслета! Практические курсы по программированию")
+    return render(request, 'index.html')
