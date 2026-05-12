@@ -5,12 +5,13 @@
 <a href="{% url 'task_create' %}" class="btn btn-primary mb-3">Создать задачу</a>
 <table class="table table-striped">
     <thead>
-        <tr>
+        <table>
             <th>ID</th>
             <th>Имя</th>
             <th>Статус</th>
             <th>Автор</th>
             <th>Исполнитель</th>
+            <th>Метки</th>
             <th>Дата создания</th>
             <th></th>
         </tr>
@@ -23,6 +24,11 @@
             <td>{{ task.status.name }}</td>
             <td>{{ task.author.username }}</td>
             <td>{{ task.executor.username|default:"" }}</td>
+            <td>
+                {% for label in task.labels.all %}
+                    {{ label.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </td>
             <td>{{ task.created_at|date:"d.m.Y H:i" }}</td>
             <td>
                 <a href="{% url 'task_detail' task.id %}">Показать</a>
