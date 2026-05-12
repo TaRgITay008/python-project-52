@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from statuses.models import Status
 from .models import Task
+from labels.models import Label
 
 class TaskCreateTest(TestCase):
     def setUp(self):
@@ -74,3 +75,39 @@ class TaskDeleteTest(TestCase):
         response = self.client.post(reverse('task_delete', args=[self.task.pk]))
         self.assertRedirects(response, reverse('tasks_list'))
         self.assertTrue(Task.objects.filter(name='Удаляемая задача').exists())
+
+class TaskFilterTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='user1', password='pass')
+        self.other = User.objects.create_user(username='user2', password='pass')
+        self.status = Status.objects.create(name='новый')
+        self.label = Label.objects.create(name='важно')
+        self.client.login(username='user1', password='pass')
+        
+        self.task1 = Task.objects.create(
+            name='Моя задача',
+            status=self.status,
+            author=self.user,
+            executor=self.user
+        )
+        self.task1.labels.add(self.label)
+        
+        self.task2 = Task.objects.create(
+            name='Чужая задача',
+            status=self.status,
+            author=self.other
+        )
+
+    def test_filter_by_own_tasks(self):
+        response = self.client.get(reverse('tasks_list'), {'only_self_tasks': 'on'})
+        self.assertEqual(len(response.context['tasks']), 1)
+        self.assertEqual(response.context['tasks'][0].name, 'Моя задача')
+
+    def test_filter_by_status(self):
+        response = self.client.get(reverse('tasks_list'), {'status': self.status.id})
+        self.assertEqual(len(response.context['tasks']), 2)  # обе задачи с этим статусом
+
+    def test_filter_by_label(self):
+        response = self.client.get(reverse('tasks_list'), {'labels': self.label.id})
+        self.assertEqual(len(response.context['tasks']), 1)
+        self.assertEqual(response.context['tasks'][0].name, 'Моя задача')
