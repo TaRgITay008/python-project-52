@@ -30,18 +30,11 @@ class LabelDeleteView(LoginRequiredMixin, DeleteView):
     template_name = 'label_delete.html'
     success_url = reverse_lazy('labels_list')
 
-    def delete(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         label = self.get_object()
-
-        # Проверяем связь через task_set (Django создаёт автоматически)
-        if label.task_set.exists():
+        # Проверяем, связана ли метка с задачей
+        if label.tasks.exists():
             messages.error(request, 'Невозможно удалить метку, она связана с задачей')
             return redirect('labels_list')
-
-        # Дополнительная проверка через tasks (если есть related_name)
-        if hasattr(label, 'tasks') and label.tasks.exists():
-            messages.error(request, 'Невозможно удалить метку, она связана с задачей')
-            return redirect('labels_list')
-
         messages.success(request, 'Метка успешно удалена')
-        return super().delete(request, *args, **kwargs)
+        return super().post(request, *args, **kwargs)
