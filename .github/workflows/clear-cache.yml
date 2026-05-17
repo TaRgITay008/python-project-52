@@ -1,0 +1,11 @@
+name: Clear Docker Cache
+on:
+  push:
+    branches: [ main ]
+jobs:
+  clear-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear Docker cache
+        run: |
+          docker system prune -af --volumes
